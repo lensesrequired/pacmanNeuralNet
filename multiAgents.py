@@ -1,6 +1,6 @@
 from util import manhattanDistance
 from game import Directions
-import random, util
+import random, util, pacmanNet
 
 from game import Agent
 
@@ -12,9 +12,13 @@ class ReflexAgent(Agent):
     The code below is provided as a guide.  You are welcome to change it
     in any way you see fit.
   """
+
+  def __init__(self, index=0):
+    self.index = index
+    self.net = pacmanNet.createNetwork()
   
     
-  def getAction(self, gameState, network):
+  def getAction(self, gameState):
     """
     You do not need to change this method, but you're welcome to.
 
@@ -31,6 +35,7 @@ class ReflexAgent(Agent):
     successors = [gameState.generatePacmanSuccessor(action) for action in legalMoves]
 
     print("Get list")
+    print(gameState.data.parseState())
     # Choose one of the best actions
     scores = [self.evaluationFunction(gameState, succ) for succ in successors]
     bestScore = max(scores)

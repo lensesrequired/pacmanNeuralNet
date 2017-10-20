@@ -286,6 +286,7 @@ class GameStateData:
     self._lose = False
     self._win = False
     self.scoreChange = 0
+    self.stateDict = {'%':0, '.':1, "o":1, ' ':2, '<':3, '>':4, '^':5, 'v':6, 'M':7, 'W':8, '3':9, 'E':10}
     
   def deepCopy( self ):
     state = GameStateData( self )
@@ -370,11 +371,8 @@ class GameStateData:
     if dir == Directions.WEST:
       return '3'
     return 'E'
-
-  def charToNum(self, ch):
-    return {'%':0, '.':1, "o":1, ' ':2, '<':3, '>':4, '^':5, 'v':6, 'M':7, 'W':8, '3':9, 'E':10}[ch]
     
-  def numString(self):
+  def parseState(self):
     width, height = self.layout.width, self.layout.height
     map = Grid(width, height)
     for x in range(width):
@@ -393,11 +391,7 @@ class GameStateData:
     for x, y in self.capsules:
       map[x][y] = 'o'
       
-    listMap = []
-    for i in str(map):
-      if(i != "\n"):
-        listMap.append(self.charToNum(i))
-
+    listMap = [self.stateDict[i] for i in str(map) if i.strip() is not '']
     print(listMap)
     
     return listMap
@@ -433,7 +427,7 @@ class Game:
     self.gameOver = False
     self.moveHistory = []
     
-  def run( self, network ):
+  def run( self ):
     """
     Main control loop for game play.
     """
@@ -458,10 +452,7 @@ class Game:
 
       # Solicit an action
       startTime = time.time()
-      if(agentIndex == 0):
-        action = agent.getAction( observation, network )
-      else:
-        action = agent.getAction( observation )
+      action = agent.getAction( observation )
       self.moveHistory.append( (agentIndex, action) )
       if 'checkTime' in dir(self.rules):
         self.rules.checkTime(time.time() - startTime)

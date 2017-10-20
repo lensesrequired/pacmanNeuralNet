@@ -92,7 +92,7 @@ def inputPrint(inp):
         print p,
     print "\n"
 
-def createNetwork(input_size = 120, output_size = 4, hidlay_size = 25):
+def createNetwork(input_size = 140, output_size = 4, hidlay_size = 25):
     hiddenLayer = []
     for i in range(hidlay_size):
         hiddenLayer.append(createNode(49))

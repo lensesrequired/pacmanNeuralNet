@@ -45,8 +45,7 @@ class PacmanGraphics:
     time.sleep(SLEEP_TIME)
     
   def draw(self, state):
-    pass
-    #print state
+    print state
   
   def finish(self):
     pass

@@ -550,11 +550,10 @@ def runGames( layout, pacman, ghosts, display, numGames, record ):
   
   rules = ClassicGameRules()
   games = []
-  network = pacmanNet.createNetwork()
   
   for i in range( numGames ):
     game = rules.newGame( layout, pacman, ghosts, display )
-    game.run(network)
+    game.run()
     games.append(game)
     if record:
       import time, cPickle
