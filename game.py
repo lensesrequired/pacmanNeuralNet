@@ -24,11 +24,11 @@ class Agent:
     raiseNotDefined()
 
 class Directions:
-  NORTH = 'North'
-  SOUTH = 'South'
-  EAST = 'East'
-  WEST = 'West'
-  STOP = 'Stop'
+  NORTH = 0
+  SOUTH = 1
+  EAST = 2
+  WEST = 3
+  STOP = 4
   
   LEFT =       {NORTH: WEST,
                  SOUTH: EAST,
@@ -391,8 +391,8 @@ class GameStateData:
     for x, y in self.capsules:
       map[x][y] = 'o'
       
-    listMap = [self.stateDict[i] for i in str(map) if i.strip() is not '']
-    print(listMap)
+    #[ord(letter) for letter in str(gameState) if letter != "\n"]
+    listMap = [self.stateDict[i] for i in str(map) if i != '\n']
     
     return listMap
     

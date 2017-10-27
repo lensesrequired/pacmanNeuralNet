@@ -234,11 +234,11 @@ class PacmanGraphics:
     width = 30 + 80 * math.sin(math.pi*pos)
     
     delta = width / 2
-    if (direction == 'West'):
+    if (direction == 3):
       endpoints = (180+delta, 180-delta)
-    elif (direction == 'North'):
+    elif (direction == 0):
       endpoints = (90+delta, 90-delta)
-    elif (direction == 'South'):
+    elif (direction == 1):
       endpoints = (270+delta, 270-delta)
     else:
       endpoints = (0+delta, 0-delta)

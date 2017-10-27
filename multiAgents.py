@@ -4,6 +4,82 @@ import random, util, pacmanNet
 
 from game import Agent
 
+class NeuralAgent(Agent):
+  """
+    A NeuralAgent  attempts to use a neural network to figure out the moves.
+  """
+  WIDTH = 20
+  HEIGHT = 7
+
+  def __init__(self, index=0):
+    self.index = index
+    self.nSize = self.WIDTH*self.HEIGHT
+    self.net = pacmanNet.createNetwork(self.nSize, 5, 30)
+    self.visited = [[0 for j in range(self.WIDTH-2)] for i in range(self.HEIGHT-2)] 
+    self.expected = [1,1,1,1,0]
+    
+  def getAction(self, gameState):
+    position = gameState.data.agentStates[0].getPosition()
+    col = position[0]-1
+    row = abs(position[1]-(self.HEIGHT-2))
+    self.visited[row][col] += 1
+    print self.visited
+
+    #update expected
+    self.expected = [0 for i in range(5)]
+    if(row != 0):
+      if(self.visited[row - 1][col] == 0):
+        self.expected[Directions.NORTH] = 1
+      else:
+        self.expected[Directions.NORTH] = -1*(self.visited[row - 1][col])
+    if(row != self.HEIGHT-3):
+      if(self.visited[row - 1][col] == 0):
+        self.expected[Directions.SOUTH] = 1
+      else:
+        self.expected[Directions.SOUTH] = -1*(self.visited[row + 1][col])
+    if(col != 0):
+      if(self.visited[row - 1][col] == 0):
+        self.expected[Directions.WEST] = 1
+      else:
+        self.expected[Directions.WEST] = -1*(self.visited[row][col - 1])
+    if(col != self.WIDTH-3):
+      if(self.visited[row - 1][col] == 0):
+        self.expected[Directions.EAST] = 1
+      else:
+        self.expected[Directions.EAST] = -1*(self.visited[row][col + 1])
+
+    self.expected[Directions.STOP] = -1*(self.visited[row][col])
+
+    print(self.expected)
+    
+    # Collect legal moves and successor states
+    legalMoves = gameState.getLegalActions()
+    print(legalMoves)
+    
+    parsedState = gameState.data.parseState()
+    #print parsedState
+
+    ff = pacmanNet.feedforward(self.net, parsedState)
+    print ff[1]
+
+    viableMoves = [(ff[1][i], i) for i in legalMoves]
+    print(viableMoves)
+
+    bestMove = max(viableMoves)
+    print(bestMove)
+
+    #raw_input()
+
+    "Add more of your code here if you want to"
+
+    #backprop
+    pacmanNet.backprop(self.net, parsedState, self.expected, 10)
+    
+#    return legalMoves[chosenIndex]
+    return bestMove[1]
+
+
+
 class ReflexAgent(Agent):
   """
     A reflex agent chooses an action at each choice point by examining

@@ -5,10 +5,6 @@ import pacman
 
 #inspired by Joel Grus:  Data Science from Scratch
 
-OUTPUT_SIZE = 4
-INPUT_SIZE = 140
-HIDLAY_SIZE = 25
-
 def dot(x, w):
     if len(x) == len(w):
         d = sum([x[i]*w[i] for i in range(len(x))])
@@ -71,6 +67,10 @@ def backprop(network, inputVector, targets, lr):
         for j, inputval in enumerate(inputVector + [-1]):         
             hiddenNeuron[j] += hiddenErrors[i]*inputval*lr
                 
+
+
+
+
 def learn(network, trainSet, epoch):
     for i in range(epoch):
         for tInput, tOutput in trainSet:      
@@ -79,23 +79,16 @@ def learn(network, trainSet, epoch):
 def createNode(size):
     node = []
     for i in range(size):
-        node.append(random.random())
+        node.append(random.random()/float(size))
     #add one more for bias
     node.append(random.random())
 
     return node
 
-def inputPrint(inp):
-    for i,p in enumerate(inp):
-        if i%NUM_DIM == 0:
-            print ""      
-        print p,
-    print "\n"
-
-def createNetwork(input_size = 140, output_size = 4, hidlay_size = 25):
+def createNetwork(input_size = 140, output_size = 4, hidlay_size = 30):
     hiddenLayer = []
     for i in range(hidlay_size):
-        hiddenLayer.append(createNode(49))
+        hiddenLayer.append(createNode(input_size))
 
     outputLayer = []    
     for i in range(output_size):
@@ -105,11 +98,6 @@ def createNetwork(input_size = 140, output_size = 4, hidlay_size = 25):
 
 def predict(network, inputval):
     hidden, result = feedforward(network,inputval)
-    print "Network Output: [",
-    for i in range(len(result)):
-        r = int(float("{:.2f}".format(result[i]))*100)
-        print r,
-        print " "*(3-len(str(r))),
-        if(i < len(result)-1):
-            print " ",
-    print "]"
+    print("Network Output: ")
+    for i in range(len(result)):    
+        print("{:.2f}".format(result[i]))
