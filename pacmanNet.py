@@ -80,6 +80,7 @@ def createNode(size):
     node = []
     for i in range(size):
         node.append(random.random()/float(size))
+        #node.append(0.5/float(size))
     #add one more for bias
     node.append(random.random())
 

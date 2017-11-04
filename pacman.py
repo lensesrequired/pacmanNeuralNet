@@ -93,7 +93,9 @@ class GameState:
       
     # Resolve multi-agent effects
     GhostRules.checkDeath( state, agentIndex )
-
+    if(state.data.score < 0):
+      state.data._lose = True
+      print str(state.data)
     # Book keeping
     state.data._agentMoved = agentIndex
     state.data.score += state.data.scoreChange
@@ -553,7 +555,9 @@ def runGames( layout, pacman, ghosts, display, numGames, record ):
   
   for i in range( numGames ):
     game = rules.newGame( layout, pacman, ghosts, display )
+    print(i)
     game.run()
+    game.agents[0].resetVisited()
     games.append(game)
     if record:
       import time, cPickle

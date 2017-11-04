@@ -13,60 +13,81 @@ class NeuralAgent(Agent):
 
   def __init__(self, index=0):
     self.index = index
-    self.nSize = self.WIDTH*self.HEIGHT
-    self.net = pacmanNet.createNetwork(self.nSize, 5, 30)
+    self.nSize = (self.WIDTH*self.HEIGHT) + 4
+    self.net = pacmanNet.createNetwork(self.nSize, 5, 25)
     self.visited = [[0 for j in range(self.WIDTH-2)] for i in range(self.HEIGHT-2)] 
     self.expected = [1,1,1,1,0]
+
+  def resetVisited(self):
+    self.visited = [[0 for j in range(self.WIDTH-2)] for i in range(self.HEIGHT-2)] 
     
   def getAction(self, gameState):
     position = gameState.data.agentStates[0].getPosition()
     col = position[0]-1
     row = abs(position[1]-(self.HEIGHT-2))
     self.visited[row][col] += 1
-    print self.visited
+    #print self.visited
 
+    visitedSpaces = []
     #update expected
     self.expected = [0 for i in range(5)]
     if(row != 0):
+      visitedSpaces.append(self.visited[row - 1][col])
       if(self.visited[row - 1][col] == 0):
         self.expected[Directions.NORTH] = 1
       else:
         self.expected[Directions.NORTH] = -1*(self.visited[row - 1][col])
+    else:
+      visitedSpaces.append(0)
+
     if(row != self.HEIGHT-3):
-      if(self.visited[row - 1][col] == 0):
+      visitedSpaces.append(self.visited[row + 1][col])
+      if(self.visited[row + 1][col] == 0):
         self.expected[Directions.SOUTH] = 1
       else:
         self.expected[Directions.SOUTH] = -1*(self.visited[row + 1][col])
+    else:
+      visitedSpaces.append(0)
+
     if(col != 0):
-      if(self.visited[row - 1][col] == 0):
+      visitedSpaces.append(self.visited[row][col - 1])
+      if(self.visited[row][col - 1] == 0):
         self.expected[Directions.WEST] = 1
       else:
         self.expected[Directions.WEST] = -1*(self.visited[row][col - 1])
+    else:
+      visitedSpaces.append(0)
+
     if(col != self.WIDTH-3):
-      if(self.visited[row - 1][col] == 0):
+      visitedSpaces.append(self.visited[row][col + 1])
+      if(self.visited[row][col + 1] == 0):
         self.expected[Directions.EAST] = 1
       else:
         self.expected[Directions.EAST] = -1*(self.visited[row][col + 1])
+    else:
+      visitedSpaces.append(0)
 
-    self.expected[Directions.STOP] = -1*(self.visited[row][col])
+    self.expected[Directions.STOP] = -1*self.visited[row][col]
 
-    print(self.expected)
+    #print(self.expected)
     
     # Collect legal moves and successor states
     legalMoves = gameState.getLegalActions()
-    print(legalMoves)
+    #print(legalMoves)
     
     parsedState = gameState.data.parseState()
+    for i in visitedSpaces:
+      parsedState.append(i)
     #print parsedState
 
     ff = pacmanNet.feedforward(self.net, parsedState)
-    print ff[1]
+    #print ff[1]
 
     viableMoves = [(ff[1][i], i) for i in legalMoves]
-    print(viableMoves)
+    #print(viableMoves)
 
     bestMove = max(viableMoves)
-    print(bestMove)
+    #print(bestMove)
 
     #raw_input()
 
