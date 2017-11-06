@@ -113,7 +113,14 @@ class Layout:
     elif layoutChar in  ['1', '2', '3', '4']:
       self.agentPositions.append( (int(layoutChar), (x,y)))
       self.numGhosts += 1 
-      
+
+def loadLayouts( folder ):
+  layouts = []
+  for filename in os.listdir(folder):
+    if filename.endswith(".lay"):
+      layouts.append(Layout([line.strip() for line in open(folder + "/" + filename)]))
+  return layouts
+
 def getLayout(name, back = 2):
   if name.endswith('.lay'):
     layout = tryToLoad('layouts/' + name)

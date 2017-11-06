@@ -424,9 +424,9 @@ def readCommand( argv ):
   
   parser.add_option('-n', '--numGames', dest='numGames', type='int',
                     help=default('the number of GAMES to play'), metavar='GAMES', default=1)
-  parser.add_option('-l', '--layout', dest='layout', 
-                    help=default('the LAYOUT_FILE from which to load the map layout'), 
-                    metavar='LAYOUT_FILE', default='mediumClassic')
+  parser.add_option('-l', '--layout', dest='layouts', 
+                    help=default('the LAYOUTS from which to load the map layouts'), 
+                    metavar='LAYOUTS', default='mylayouts')
   parser.add_option('-p', '--pacman', dest='pacman', 
                     help=default('the agent TYPE in the pacmanAgents module to use'), 
                     metavar='TYPE', default='KeyboardAgent')
@@ -463,10 +463,10 @@ def readCommand( argv ):
   # Fix the random seed
   if options.fixRandomSeed: random.seed('cs188')
   
-  # Choose a layout
+  # Set layout folder
   import layout
-  args['layout'] = layout.getLayout( options.layout )
-  if args['layout'] == None: raise Exception("The layout " + options.layout + " cannot be found")
+  args['layouts'] = layout.loadLayouts( options.layouts )
+  if args['layouts'] == None: raise Exception("The layout " + options.layout + " cannot be found")
   
   # Choose a pacman agent
   noKeyboard = options.gameToReplay == None and (options.textGraphics or options.quietGraphics)
@@ -546,26 +546,26 @@ def replayGame( layout, agents, actions, display ):
     display.finish()
 
 
-def runGames( layout, pacman, ghosts, display, numGames, record ):
+def runGames( layouts, pacman, ghosts, display, numGames, record ):
   import __main__
   __main__.__dict__['_display'] = display
   
   rules = ClassicGameRules()
   games = []
-  
   for i in range( numGames ):
-    game = rules.newGame( layout, pacman, ghosts, display )
-    print(i)
-    game.run()
-    game.agents[0].resetVisited()
-    games.append(game)
-    if record:
-      import time, cPickle
-      fname = ('recorded-game-%d' % (i + 1)) +  '-'.join([str(t) for t in time.localtime()[1:6]])
-      f = file(fname, 'w')
-      components = {'layout': layout, 'agents': game.agents, 'actions': game.moveHistory}
-      cPickle.dump(components, f)
-      f.close()
+    for layout in layouts:
+      game = rules.newGame( layout, pacman, ghosts, display )
+      print(i)
+      game.run()
+      game.agents[0].resetVisited()
+      games.append(game)
+      if record:
+        import time, cPickle
+        fname = ('recorded-game-%d' % (i + 1)) +  '-'.join([str(t) for t in time.localtime()[1:6]])
+        f = file(fname, 'w')
+        components = {'layout': layout, 'agents': game.agents, 'actions': game.moveHistory}
+        cPickle.dump(components, f)
+        f.close()
       
   if numGames > 1:
     scores = [game.state.getScore() for game in games]
