@@ -473,5 +473,5 @@ class Game:
       if "final" in dir( agent ) :
         agent.final( self.state )
     
-    self.display.finish()
+    self.display.finish( self.state )
 

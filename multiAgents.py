@@ -17,9 +17,16 @@ class NeuralAgent(Agent):
     self.net = pacmanNet.createNetwork(self.nSize, 5, 25)
     self.visited = [[0 for j in range(self.WIDTH-2)] for i in range(self.HEIGHT-2)] 
     self.expected = [1,1,1,1,0]
+    self.numDots = 1
 
   def resetVisited(self):
     self.visited = [[0 for j in range(self.WIDTH-2)] for i in range(self.HEIGHT-2)] 
+
+  def setExpected(self, row, col, direction):
+      if(self.visited[row][col] == 0):
+        self.expected[direction] = 1
+      else:
+        self.expected[direction] = -1*(self.visited[row][col])
     
   def getAction(self, gameState):
     position = gameState.data.agentStates[0].getPosition()
@@ -28,46 +35,36 @@ class NeuralAgent(Agent):
     self.visited[row][col] += 1
     #print self.visited
 
-    visitedSpaces = []
+    surroundingSpaces = []
     #update expected
     self.expected = [0 for i in range(5)]
     if(row != 0):
-      visitedSpaces.append(self.visited[row - 1][col])
-      if(self.visited[row - 1][col] == 0):
-        self.expected[Directions.NORTH] = 1
-      else:
-        self.expected[Directions.NORTH] = -1*(self.visited[row - 1][col])
+      surroundingSpaces.append(self.visited[row - 1][col])
+      self.setExpected(row - 1, col, Directions.NORTH)
     else:
-      visitedSpaces.append(0)
+      surroundingSpaces.append(0)
 
     if(row != self.HEIGHT-3):
-      visitedSpaces.append(self.visited[row + 1][col])
-      if(self.visited[row + 1][col] == 0):
-        self.expected[Directions.SOUTH] = 1
-      else:
-        self.expected[Directions.SOUTH] = -1*(self.visited[row + 1][col])
+      surroundingSpaces.append(self.visited[row + 1][col])
+      self.setExpected(row + 1, col, Directions.SOUTH)
     else:
-      visitedSpaces.append(0)
+      surroundingSpaces.append(0)
 
     if(col != 0):
-      visitedSpaces.append(self.visited[row][col - 1])
-      if(self.visited[row][col - 1] == 0):
-        self.expected[Directions.WEST] = 1
-      else:
-        self.expected[Directions.WEST] = -1*(self.visited[row][col - 1])
+      surroundingSpaces.append(self.visited[row][col - 1])
+      self.setExpected(row, col - 1, Directions.WEST)
     else:
-      visitedSpaces.append(0)
+      surroundingSpaces.append(0)
 
     if(col != self.WIDTH-3):
-      visitedSpaces.append(self.visited[row][col + 1])
-      if(self.visited[row][col + 1] == 0):
-        self.expected[Directions.EAST] = 1
-      else:
-        self.expected[Directions.EAST] = -1*(self.visited[row][col + 1])
+      surroundingSpaces.append(self.visited[row][col + 1])
+      self.setExpected(row, col + 1, Directions.EAST)
     else:
-      visitedSpaces.append(0)
+      surroundingSpaces.append(0)
 
-    self.expected[Directions.STOP] = -1*self.visited[row][col]
+    self.expected[Directions.STOP] = -100
+
+    self.numDots = str(gameState.data).count(".")
 
     #print(self.expected)
     
@@ -76,7 +73,7 @@ class NeuralAgent(Agent):
     #print(legalMoves)
     
     parsedState = gameState.data.parseState()
-    for i in visitedSpaces:
+    for i in surroundingSpaces:
       parsedState.append(i)
     #print parsedState
 
@@ -94,6 +91,7 @@ class NeuralAgent(Agent):
     "Add more of your code here if you want to"
 
     #backprop
+    #print(self.numDots)
     pacmanNet.backprop(self.net, parsedState, self.expected, 10)
     
 #    return legalMoves[chosenIndex]

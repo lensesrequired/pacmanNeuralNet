@@ -66,10 +66,6 @@ def backprop(network, inputVector, targets, lr):
     for i, hiddenNeuron in enumerate(network[0]):
         for j, inputval in enumerate(inputVector + [-1]):         
             hiddenNeuron[j] += hiddenErrors[i]*inputval*lr
-                
-
-
-
 
 def learn(network, trainSet, epoch):
     for i in range(epoch):
