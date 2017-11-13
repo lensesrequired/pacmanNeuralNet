@@ -286,7 +286,7 @@ class GameStateData:
     self._lose = False
     self._win = False
     self.scoreChange = 0
-    self.stateDict = {'%':0, '.':1, "o":1, ' ':2, '<':3, '>':4, '^':5, 'v':6, 'M':7, 'W':8, '3':9, 'E':10}
+    self.stateDict = {'%':0, '.':0.1, "o":0.1, ' ':0.2, '<':0.3, '>':0.4, '^':0.5, 'v':0.6, 'M':-0.1, 'W':-0.2, '3':-0.3, 'E':-0.4}
     
   def deepCopy( self ):
     state = GameStateData( self )
@@ -344,7 +344,28 @@ class GameStateData:
       map[x][y] = 'o'
     
     return str(map) + ("\nScore: %d\n" % self.score)
-      
+
+  def matrix( self ):
+    width, height = self.layout.width, self.layout.height
+    map = Grid(width, height)
+    for x in range(width):
+      for y in range(height):
+        food, walls = self.food, self.layout.walls
+        map[x][y] = self._foodWallStr(food[x][y], walls[x][y])
+    
+    for agentState in self.agentStates:
+      x,y = [int( i ) for i in nearestPoint( agentState.configuration.pos )]
+      agent_dir = agentState.configuration.direction
+      if agentState.isPacman:
+        map[x][y] = self._pacStr( agent_dir )
+      else:
+        map[x][y] = self._ghostStr( agent_dir )
+
+    for x, y in self.capsules:
+      map[x][y] = 'o'
+    
+    return list(map)
+
   def _foodWallStr( self, hasFood, hasWall ):
     if hasFood:
       return '.'
@@ -426,11 +447,16 @@ class Game:
     self.rules = rules
     self.gameOver = False
     self.moveHistory = []
+
+  def show( self ):
+    print( self.state.data )
     
   def run( self ):
     """
     Main control loop for game play.
     """
+    self.agents[0].reset(str(self.state.data).count("."))
+
     self.display.initialize(self.state.data)
     # inform learning agents of the game start
     for agent in self.agents:
@@ -467,6 +493,11 @@ class Game:
       if agentIndex == numAgents + 1: self.numMoves += 1
       # Next agent
       agentIndex = ( agentIndex + 1 ) % numAgents
+
+    import cPickle
+    f = file("pickle", 'wb')
+    cPickle.dump(self.agents[0], f)
+    f.close()
     
     # inform a learning agent of the game result
     for agent in self.agents:

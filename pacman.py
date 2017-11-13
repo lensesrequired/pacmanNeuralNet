@@ -95,6 +95,7 @@ class GameState:
     GhostRules.checkDeath( state, agentIndex )
     if(state.data.score < 0):
       state.data._lose = True
+
     # Book keeping
     state.data._agentMoved = agentIndex
     state.data.score += state.data.scoreChange
@@ -262,7 +263,8 @@ class ClassicGameRules:
     game.gameOver = True
 
   def lose( self, state, game ):
-    print "Pacman died! Score: %d" % state.data.score
+    #print "Pacman died! Score: %d" % state.data.score
+    #print "Pacman took %d moves" % state.data.agentStates[0].moves
     game.gameOver = True
     
 class PacmanRules:
@@ -551,14 +553,24 @@ def runGames( layouts, pacman, ghosts, display, numGames, record ):
   
   rules = ClassicGameRules()
   games = []
-  for i in range( numGames ):
+  wins = [game.state.isWin() for game in games]
+  #for i in range( numGames ):
+  i = 0
+  while(wins.count(True) < 1):
     for l in range(len(layouts)):
       layout = layouts[l]
-      print "Layout num:", l
+      if(len(layouts) > 1):
+        print "Layout num:", l
       game = rules.newGame( layout, pacman, ghosts, display )
       print "Iteration:", i
       game.run()
-      game.agents[0].resetVisited()
+      if(i < 500):
+        if(i % 20 == 0):
+          print "Moves:", game.agents[0].moves
+          game.show()
+      if(i % 500 == 0):
+        print "Moves:", game.agents[0].moves
+        game.show()
       games.append(game)
       if record:
         import time, cPickle
@@ -567,6 +579,7 @@ def runGames( layouts, pacman, ghosts, display, numGames, record ):
         components = {'layout': layout, 'agents': game.agents, 'actions': game.moveHistory}
         cPickle.dump(components, f)
         f.close()
+    i += 1
       
   if numGames > 1:
     scores = [game.state.getScore() for game in games]

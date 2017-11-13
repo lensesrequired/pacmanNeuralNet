@@ -346,7 +346,7 @@ class PacmanGraphics:
     self.moveEyes(self.getGhostPos(ghost), ghost.configuration.direction, ghostImageParts[-4:])
     refresh
     
-  def finish(self):
+  def finish(self, state):
     end_graphics()
   
   def to_screen(self, point):

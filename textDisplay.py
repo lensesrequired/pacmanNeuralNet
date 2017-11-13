@@ -12,7 +12,7 @@ class NullGraphics:
   def update(self, state):
     pass
   
-  def finish(self):
+  def finish(self, state):
     pass
 
 class PacmanGraphics:

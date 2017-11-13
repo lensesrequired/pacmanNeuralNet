@@ -14,12 +14,15 @@ class NeuralAgent(Agent):
   def __init__(self, index=0):
     self.index = index
     self.nSize = (self.WIDTH*self.HEIGHT) + 4
-    self.net = pacmanNet.createNetwork(self.nSize, 5, 25)
+    self.net = pacmanNet.createNetwork(self.nSize, 6, 30)
     self.visited = [[0 for j in range(self.WIDTH-2)] for i in range(self.HEIGHT-2)] 
     self.expected = [1,1,1,1,0]
     self.numDots = 1
+    self.moves = 0
 
-  def resetVisited(self):
+  def reset(self, num):
+    self.initialDots = num
+    self.moves = 0
     self.visited = [[0 for j in range(self.WIDTH-2)] for i in range(self.HEIGHT-2)] 
 
   def setExpected(self, row, col, direction):
@@ -29,72 +32,94 @@ class NeuralAgent(Agent):
         self.expected[direction] = -1*(self.visited[row][col])
     
   def getAction(self, gameState):
+    #training things and stuff
+    self.moves += 1
+
     position = gameState.data.agentStates[0].getPosition()
     col = position[0]-1
     row = abs(position[1]-(self.HEIGHT-2))
     self.visited[row][col] += 1
     #print self.visited
 
-    surroundingSpaces = []
-    #update expected
-    self.expected = [0 for i in range(5)]
-    if(row != 0):
-      surroundingSpaces.append(self.visited[row - 1][col])
-      self.setExpected(row - 1, col, Directions.NORTH)
-    else:
-      surroundingSpaces.append(0)
+    surroundingSpaces = [-1 for i in range(4)]
+    m = gameState.data.matrix()
+    if(row != 0): #row - 1, col, Directions.NORTH
+      if(m[col][row - 1] != "%"):
+        surroundingSpaces[0] = (self.visited[row - 1][col])
+    if(row != self.HEIGHT-3): #row + 1, col, Directions.SOUTH
+      if(m[col][row + 1] != "%"):
+        surroundingSpaces[1] = self.visited[row + 1][col]
+    if(col != 0): #row, col - 1, Directions.WEST
+      if(m[col - 1][row] != "%"):
+        surroundingSpaces[3] = self.visited[row][col - 1]
+    if(col != self.WIDTH-3): #row, col + 1, Directions.EAST
+      if(m[col + 1][row] != "%"):
+        surroundingSpaces[2] = self.visited[row][col + 1]
+    #input()
 
-    if(row != self.HEIGHT-3):
-      surroundingSpaces.append(self.visited[row + 1][col])
-      self.setExpected(row + 1, col, Directions.SOUTH)
-    else:
-      surroundingSpaces.append(0)
-
-    if(col != 0):
-      surroundingSpaces.append(self.visited[row][col - 1])
-      self.setExpected(row, col - 1, Directions.WEST)
-    else:
-      surroundingSpaces.append(0)
-
-    if(col != self.WIDTH-3):
-      surroundingSpaces.append(self.visited[row][col + 1])
-      self.setExpected(row, col + 1, Directions.EAST)
-    else:
-      surroundingSpaces.append(0)
-
-    self.expected[Directions.STOP] = -100
-
-    self.numDots = str(gameState.data).count(".")
-
-    #print(self.expected)
-    
     # Collect legal moves and successor states
     legalMoves = gameState.getLegalActions()
-    #print(legalMoves)
     
     parsedState = gameState.data.parseState()
+    self.numDots = parsedState.count(0.1)
     for i in surroundingSpaces:
       parsedState.append(i)
-    #print parsedState
 
     ff = pacmanNet.feedforward(self.net, parsedState)
-    #print ff[1]
-
+    self.expected = [ff[1][i] for i in range(5)]
     viableMoves = [(ff[1][i], i) for i in legalMoves]
-    #print(viableMoves)
-
     bestMove = max(viableMoves)
-    #print(bestMove)
 
-    #raw_input()
+    ranking = list(set(surroundingSpaces))
+    ranking.sort()
+    try:
+      ranking.remove(-1)
+    except ValueError:
+      pass
 
-    "Add more of your code here if you want to"
+    #Get expected values
+    for r in range(len(ranking)):
+      if r == 0:
+        for j in range(len(self.expected)-1):
+          if surroundingSpaces[j] == ranking[r]:
+            self.expected[j] = 1
+      elif r == 1:
+        for j in range(len(self.expected)-1):
+          if surroundingSpaces[j] == ranking[r]:
+            self.expected[j] = ff[1][j] * 0.5
+      elif r == 2:
+        for j in range(len(self.expected)-1):
+          if surroundingSpaces[j] == ranking[r]:
+            self.expected[j] = ff[1][j] * -0.5
+      else:
+        for j in range(len(self.expected)-1):
+          if surroundingSpaces[j] == ranking[r]:
+            self.expected[j] = -1
+    self.expected[Directions.STOP] = -1
 
-    #backprop
-    #print(self.numDots)
-    pacmanNet.backprop(self.net, parsedState, self.expected, 10)
-    
-#    return legalMoves[chosenIndex]
+    # willEat = 0
+    # try:
+    #   i = self.expected.index(1)
+    #   if(i == Directions.NORTH):
+    #     if(not self.visited[row-1][col]):
+    #       willEat = 1
+    #   elif(i == Directions.SOUTH):
+    #     if(not self.visited[row+1][col]):
+    #       willEat = 1
+    #   elif(i == Directions.EAST):
+    #     if(not self.visited[row][col+1]):
+    #       willEat = 1
+    #   elif(i == Directions.WEST):
+    #     if(not self.visited[row][col-1]):
+    #       willEat = 1
+    # except ValueError:
+    #   pass
+
+    #input()
+    pacmanNet.backprop(self.net, parsedState, self.expected + [(self.numDots-1)/self.initialDots], 10)
+
+#   return legalMoves[chosenIndex]
+    #print bestMove[1]
     return bestMove[1]
 
 

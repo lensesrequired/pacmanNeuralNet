@@ -20,7 +20,14 @@ def neuronOutput (inputs, weights):
         print(len(inputs))
         print(len(weights))
     # note - last col of weights is bias.
-    trans = 1/(1+math.exp(-d))
+    try:
+        trans = 1/(1+math.exp(-d))
+    except OverflowError:
+        print(d)
+        #print(inputs)
+        #print(weights)
+        #input()
+        return 0
     return trans
 
 def feedforward(network, inputVector):
