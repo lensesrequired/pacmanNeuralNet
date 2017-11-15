@@ -114,6 +114,7 @@ class Layout:
       self.agentPositions.append( (int(layoutChar), (x,y)))
       self.numGhosts += 1 
 
+#CHANGE!
 def loadLayouts( folder ):
   layouts = []
   for filename in os.listdir(folder):

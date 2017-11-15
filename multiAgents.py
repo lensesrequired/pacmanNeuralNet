@@ -14,7 +14,7 @@ class NeuralAgent(Agent):
   def __init__(self, index=0):
     self.index = index
     self.nSize = (self.WIDTH*self.HEIGHT) + 4
-    self.net = pacmanNet.createNetwork(self.nSize, 6, 30)
+    self.net = pacmanNet.createNetwork(self.nSize, 6, 60)
     self.visited = [[0 for j in range(self.WIDTH-2)] for i in range(self.HEIGHT-2)] 
     self.expected = [1,1,1,1,0]
     self.numDots = 1
@@ -44,16 +44,16 @@ class NeuralAgent(Agent):
     surroundingSpaces = [-1 for i in range(4)]
     m = gameState.data.matrix()
     if(row != 0): #row - 1, col, Directions.NORTH
-      if(m[col][row - 1] != "%"):
+      if(m[row][col + 1] != "%"):
         surroundingSpaces[0] = (self.visited[row - 1][col])
     if(row != self.HEIGHT-3): #row + 1, col, Directions.SOUTH
-      if(m[col][row + 1] != "%"):
+      if(m[row + 2][col + 1] != "%"):
         surroundingSpaces[1] = self.visited[row + 1][col]
     if(col != 0): #row, col - 1, Directions.WEST
-      if(m[col - 1][row] != "%"):
+      if(m[row + 1][col] != "%"):
         surroundingSpaces[3] = self.visited[row][col - 1]
     if(col != self.WIDTH-3): #row, col + 1, Directions.EAST
-      if(m[col + 1][row] != "%"):
+      if(m[row + 1][col + 2] != "%"):
         surroundingSpaces[2] = self.visited[row][col + 1]
     #input()
 

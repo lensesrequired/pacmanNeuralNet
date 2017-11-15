@@ -234,6 +234,7 @@ class PacmanGraphics:
     width = 30 + 80 * math.sin(math.pi*pos)
     
     delta = width / 2
+    #CHANGE!
     if (direction == 3):
       endpoints = (180+delta, 180-delta)
     elif (direction == 0):
@@ -346,6 +347,7 @@ class PacmanGraphics:
     self.moveEyes(self.getGhostPos(ghost), ghost.configuration.direction, ghostImageParts[-4:])
     refresh
     
+  #CHANGE!
   def finish(self, state):
     end_graphics()
   

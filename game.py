@@ -16,7 +16,7 @@ class Agent:
   def __init__(self, index=0):
     self.index = index
       
-  def getAction(self, state, network):
+  def getAction(self, state):
     """
     The Agent will receive a GameState (from either {pacman, capture, sonar}.py) and
     must return an action from Directions.{North, South, East, West, Stop}
@@ -24,6 +24,7 @@ class Agent:
     raiseNotDefined()
 
 class Directions:
+  #CHANGE!
   NORTH = 0
   SOUTH = 1
   EAST = 2
@@ -286,6 +287,7 @@ class GameStateData:
     self._lose = False
     self._win = False
     self.scoreChange = 0
+    #CHANGE!
     self.stateDict = {'%':0, '.':0.1, "o":0.1, ' ':0.2, '<':0.3, '>':0.4, '^':0.5, 'v':0.6, 'M':-0.1, 'W':-0.2, '3':-0.3, 'E':-0.4}
     
   def deepCopy( self ):
@@ -345,6 +347,7 @@ class GameStateData:
     
     return str(map) + ("\nScore: %d\n" % self.score)
 
+  #CHANGE!
   def matrix( self ):
     width, height = self.layout.width, self.layout.height
     map = Grid(width, height)
@@ -364,7 +367,12 @@ class GameStateData:
     for x, y in self.capsules:
       map[x][y] = 'o'
     
-    return list(map)
+    m = [[] for i in range(len(list(map[0])))]
+    for i in list(map):
+      for j in range(len(list(map)[0])):
+        m[abs(len(list(map[0]))-j-1)].append(i[j])
+
+    return m
 
   def _foodWallStr( self, hasFood, hasWall ):
     if hasFood:
@@ -494,6 +502,7 @@ class Game:
       # Next agent
       agentIndex = ( agentIndex + 1 ) % numAgents
 
+    #CHANGE!
     import cPickle
     f = file("pickle", 'wb')
     cPickle.dump(self.agents[0], f)
@@ -502,6 +511,7 @@ class Game:
     # inform a learning agent of the game result
     for agent in self.agents:
       if "final" in dir( agent ) :
+        #CHANGE!
         agent.final( self.state )
     
     self.display.finish( self.state )

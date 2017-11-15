@@ -11,7 +11,7 @@ code to run a game.  This file is divided into three sections:
           understand.
 
   (ii)  The hidden secrets of pacman:
-          This secztion contains all of the logic code that the pacman
+          This section contains all of the logic code that the pacman
           environment uses to decide who can move where, who dies when
           things collide, etc.  You shouldn't need to read this section
           of code, but you can if you want.
@@ -93,6 +93,7 @@ class GameState:
       
     # Resolve multi-agent effects
     GhostRules.checkDeath( state, agentIndex )
+    #CHANGE!
     if(state.data.score < 0):
       state.data._lose = True
 
@@ -263,6 +264,7 @@ class ClassicGameRules:
     game.gameOver = True
 
   def lose( self, state, game ):
+    #CHANGE!
     #print "Pacman died! Score: %d" % state.data.score
     #print "Pacman took %d moves" % state.data.agentStates[0].moves
     game.gameOver = True
@@ -425,6 +427,7 @@ def readCommand( argv ):
   
   parser.add_option('-n', '--numGames', dest='numGames', type='int',
                     help=default('the number of GAMES to play'), metavar='GAMES', default=1)
+  #CHANGE
   parser.add_option('-l', '--layout', dest='layouts', 
                     help=default('the LAYOUTS from which to load the map layouts'), 
                     metavar='LAYOUTS', default='mylayouts')
@@ -464,6 +467,7 @@ def readCommand( argv ):
   # Fix the random seed
   if options.fixRandomSeed: random.seed('cs188')
   
+  #CHANGE!
   # Set layout folder
   import layout
   args['layouts'] = layout.loadLayouts( options.layouts )
@@ -546,7 +550,7 @@ def replayGame( layout, agents, actions, display ):
     
     display.finish()
 
-
+#CHANGE! (layout --> layouts, function change as well)
 def runGames( layouts, pacman, ghosts, display, numGames, record ):
   import __main__
   __main__.__dict__['_display'] = display
