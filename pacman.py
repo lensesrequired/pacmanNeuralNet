@@ -94,7 +94,7 @@ class GameState:
     # Resolve multi-agent effects
     GhostRules.checkDeath( state, agentIndex )
     #CHANGE!
-    if(state.data.score < 0):
+    if(state.data.score < 0 and not state.data._win):
       state.data._lose = True
 
     # Book keeping
@@ -458,6 +458,7 @@ def readCommand( argv ):
                     help='Writes game histories to a file (named by the time they were played)', default=False)
   parser.add_option('--replay', dest='gameToReplay', 
                     help='A recorded game file (pickle) to replay', default=None)
+
   
   options, otherjunk = parser.parse_args()
   if len(otherjunk) != 0: 
@@ -557,25 +558,39 @@ def runGames( layouts, pacman, ghosts, display, numGames, record ):
   
   rules = ClassicGameRules()
   games = []
-  wins = [game.state.isWin() for game in games]
-  #for i in range( numGames ):
+  consecWins = 0
+
+  pacman.training = True
+  #LEARNING
   i = 0
-  while(wins.count(True) < 1):
+  while(consecWins < 5):
     for l in range(len(layouts)):
+
       layout = layouts[l]
       if(len(layouts) > 1):
         print "Layout num:", l
+
       game = rules.newGame( layout, pacman, ghosts, display )
       print "Iteration:", i
       game.run()
-      if(i < 500):
-        if(i % 20 == 0):
-          print "Moves:", game.agents[0].moves
-          game.show()
-      if(i % 500 == 0):
-        print "Moves:", game.agents[0].moves
-        game.show()
-      games.append(game)
+
+      if(game.state.isWin()):
+        consecWins += 1
+      else:
+        consecWins = 0
+
+      # if(i < 500):
+      #   if(i % 20 == 0):
+      #     print "Moves:", game.agents[0].moves
+      #     print "Output:", game.agents[0].getFF(game.state)
+      #     game.show()
+      # if(i % 500 == 0):
+      #   print "Moves:", game.agents[0].moves
+      #   print "Output:", game.agents[0].getFF(game.state)
+      #   game.show()
+
+      # games.append(game)
+
       if record:
         import time, cPickle
         fname = ('recorded-game-%d' % (i + 1)) +  '-'.join([str(t) for t in time.localtime()[1:6]])
@@ -585,6 +600,30 @@ def runGames( layouts, pacman, ghosts, display, numGames, record ):
         f.close()
     i += 1
       
+  #TESTING
+  print("TESTING!")
+  pacman.training = False
+  import layout
+  testLayouts = layout.loadLayouts( "testLayouts" )
+  for l in range(len(testLayouts)):
+
+    layout = testLayouts[l]
+    if(len(testLayouts) > 1):
+      print "Layout num:", l
+
+    game = rules.newGame( layout, pacman, ghosts, display )
+    game.run()
+
+    games.append(game)
+
+    if record:
+      import time, cPickle
+      fname = ('recorded-game-%d' % (i + 1)) +  '-'.join([str(t) for t in time.localtime()[1:6]])
+      f = file(fname, 'w')
+      components = {'layout': layout, 'agents': game.agents, 'actions': game.moveHistory}
+      cPickle.dump(components, f)
+      f.close()
+
   if numGames > 1:
     scores = [game.state.getScore() for game in games]
     wins = [game.state.isWin() for game in games]

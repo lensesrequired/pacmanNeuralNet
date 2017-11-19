@@ -13,7 +13,7 @@ class NeuralAgent(Agent):
 
   def __init__(self, index=0):
     self.index = index
-    self.nSize = (self.WIDTH*self.HEIGHT) + 4
+    self.nSize = (self.WIDTH*self.HEIGHT)
     self.net = pacmanNet.createNetwork(self.nSize, 6, 60)
     self.visited = [[0 for j in range(self.WIDTH-2)] for i in range(self.HEIGHT-2)] 
     self.expected = [1,1,1,1,0]
@@ -25,12 +25,12 @@ class NeuralAgent(Agent):
     self.moves = 0
     self.visited = [[0 for j in range(self.WIDTH-2)] for i in range(self.HEIGHT-2)] 
 
-  def setExpected(self, row, col, direction):
-      if(self.visited[row][col] == 0):
-        self.expected[direction] = 1
-      else:
-        self.expected[direction] = -1*(self.visited[row][col])
-    
+  def getFF(self, gameState):
+    parsedState = gameState.data.parseState()
+    ff = pacmanNet.feedforward(self.net, parsedState)
+
+    return ff[1]
+
   def getAction(self, gameState):
     #training things and stuff
     self.moves += 1
@@ -62,8 +62,9 @@ class NeuralAgent(Agent):
     
     parsedState = gameState.data.parseState()
     self.numDots = parsedState.count(0.1)
-    for i in surroundingSpaces:
-      parsedState.append(i)
+    # print(self.numDots)
+    # for i in surroundingSpaces:
+    #   parsedState.append(i)
 
     ff = pacmanNet.feedforward(self.net, parsedState)
     self.expected = [ff[1][i] for i in range(5)]
@@ -78,47 +79,31 @@ class NeuralAgent(Agent):
       pass
 
     #Get expected values
-    for r in range(len(ranking)):
+    for r,rank in enumerate(ranking):
       if r == 0:
         for j in range(len(self.expected)-1):
-          if surroundingSpaces[j] == ranking[r]:
+          if surroundingSpaces[j] == rank:
             self.expected[j] = 1
       elif r == 1:
         for j in range(len(self.expected)-1):
-          if surroundingSpaces[j] == ranking[r]:
+          if surroundingSpaces[j] == rank:
             self.expected[j] = ff[1][j] * 0.5
       elif r == 2:
         for j in range(len(self.expected)-1):
-          if surroundingSpaces[j] == ranking[r]:
+          if surroundingSpaces[j] == rank:
             self.expected[j] = ff[1][j] * -0.5
       else:
         for j in range(len(self.expected)-1):
-          if surroundingSpaces[j] == ranking[r]:
+          if surroundingSpaces[j] == rank:
             self.expected[j] = -1
     self.expected[Directions.STOP] = -1
 
-    # willEat = 0
-    # try:
-    #   i = self.expected.index(1)
-    #   if(i == Directions.NORTH):
-    #     if(not self.visited[row-1][col]):
-    #       willEat = 1
-    #   elif(i == Directions.SOUTH):
-    #     if(not self.visited[row+1][col]):
-    #       willEat = 1
-    #   elif(i == Directions.EAST):
-    #     if(not self.visited[row][col+1]):
-    #       willEat = 1
-    #   elif(i == Directions.WEST):
-    #     if(not self.visited[row][col-1]):
-    #       willEat = 1
-    # except ValueError:
-    #   pass
+    ff[1][5] = (self.numDots-1)/float(self.initialDots)
+    ff[1][4] = -1
+    if(self.training):
+      pacmanNet.backprop(self.net, parsedState, self.expected + [(self.numDots-1)/float(self.initialDots)], 1)
 
-    #input()
-    pacmanNet.backprop(self.net, parsedState, self.expected + [(self.numDots-1)/self.initialDots], 10)
-
-#   return legalMoves[chosenIndex]
+    #return legalMoves[chosenIndex]
     #print bestMove[1]
     return bestMove[1]
 

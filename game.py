@@ -504,7 +504,7 @@ class Game:
 
     #CHANGE!
     import cPickle
-    f = file("pickle", 'wb')
+    f = file("pickle1", 'wb')
     cPickle.dump(self.agents[0], f)
     f.close()
     
