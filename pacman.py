@@ -94,12 +94,14 @@ class GameState:
     # Resolve multi-agent effects
     GhostRules.checkDeath( state, agentIndex )
     #CHANGE!
-    if(state.data.score < 0 and not state.data._win):
+    if(state.data.score < (state.data.scoreMax - 75) and not state.data._win):
       state.data._lose = True
 
     # Book keeping
     state.data._agentMoved = agentIndex
     state.data.score += state.data.scoreChange
+    if(state.data.score > state.data.scoreMax):
+      state.data.setScoreMax(state.data.score)
     return state
   
   def getLegalPacmanActions( self ):
@@ -560,12 +562,16 @@ def runGames( layouts, pacman, ghosts, display, numGames, record ):
   games = []
   consecWins = 0
 
+  # import cPickle
+  # f = file("pickle100nodes2layouts", 'rb')
+  # pacman = cPickle.load(f)
+  # f.close()
+
   pacman.training = True
   #LEARNING
   i = 0
-  while(consecWins < 5):
+  while(consecWins < 200):
     for l in range(len(layouts)):
-
       layout = layouts[l]
       if(len(layouts) > 1):
         print "Layout num:", l
@@ -573,31 +579,19 @@ def runGames( layouts, pacman, ghosts, display, numGames, record ):
       game = rules.newGame( layout, pacman, ghosts, display )
       print "Iteration:", i
       game.run()
+      print game.agents[0].moves
 
       if(game.state.isWin()):
         consecWins += 1
       else:
         consecWins = 0
 
-      # if(i < 500):
-      #   if(i % 20 == 0):
-      #     print "Moves:", game.agents[0].moves
-      #     print "Output:", game.agents[0].getFF(game.state)
-      #     game.show()
-      # if(i % 500 == 0):
-      #   print "Moves:", game.agents[0].moves
-      #   print "Output:", game.agents[0].getFF(game.state)
-      #   game.show()
+      #CHANGE!
+      import cPickle
+      f = file("pickle100nodes10layouts", 'wb')
+      cPickle.dump(game.agents[0], f)
+      f.close()
 
-      # games.append(game)
-
-      if record:
-        import time, cPickle
-        fname = ('recorded-game-%d' % (i + 1)) +  '-'.join([str(t) for t in time.localtime()[1:6]])
-        f = file(fname, 'w')
-        components = {'layout': layout, 'agents': game.agents, 'actions': game.moveHistory}
-        cPickle.dump(components, f)
-        f.close()
     i += 1
       
   #TESTING
@@ -616,21 +610,20 @@ def runGames( layouts, pacman, ghosts, display, numGames, record ):
 
     games.append(game)
 
-    if record:
-      import time, cPickle
-      fname = ('recorded-game-%d' % (i + 1)) +  '-'.join([str(t) for t in time.localtime()[1:6]])
-      f = file(fname, 'w')
-      components = {'layout': layout, 'agents': game.agents, 'actions': game.moveHistory}
-      cPickle.dump(components, f)
-      f.close()
+    # if record:
+    #   import time, cPickle
+    #   fname = ('recorded-game-%d' % (i + 1)) +  '-'.join([str(t) for t in time.localtime()[1:6]])
+    #   f = file(fname, 'w')
+    #   components = {'layout': layout, 'agents': game.agents, 'actions': game.moveHistory}
+    #   cPickle.dump(components, f)
+    #   f.close()
 
-  if numGames > 1:
-    scores = [game.state.getScore() for game in games]
-    wins = [game.state.isWin() for game in games]
-    print 'Average Score:', sum(scores) / float(numGames) 
-    print 'Scores:       ', ', '.join([str(score) for score in scores])
-    print 'Win Rate:     ', wins.count(True) / float(numGames)
-    print 'Record:       ', ', '.join([ ['Loss', 'Win'][int(w)] for w in wins])
+  scores = [game.state.getScore() for game in games]
+  wins = [game.state.isWin() for game in games]
+  print 'Average Score:', sum(scores) / float(numGames) 
+  print 'Scores:       ', ', '.join([str(score) for score in scores])
+  print 'Win Rate:     ', wins.count(True) / float(numGames)
+  print 'Record:       ', ', '.join([ ['Loss', 'Win'][int(w)] for w in wins])
     
   return games
   
@@ -639,11 +632,11 @@ if __name__ == '__main__':
   The main function called when pacman.py is run
   from the command line:
 
-  > python pacman.py
+    > python pacman.py
 
-  See the usage string for more details.
+    See the usage string for more details.
 
-  > python pacman.py --help
+    > python pacman.py --help
   """
   args = readCommand( sys.argv[1:] ) # Get game components based on input
   runGames( **args )        

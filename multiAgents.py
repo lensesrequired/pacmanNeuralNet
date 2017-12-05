@@ -14,7 +14,7 @@ class NeuralAgent(Agent):
   def __init__(self, index=0):
     self.index = index
     self.nSize = (self.WIDTH*self.HEIGHT)
-    self.net = pacmanNet.createNetwork(self.nSize, 6, 60)
+    self.net = pacmanNet.createNetwork(self.nSize, 6, 100)
     self.visited = [[0 for j in range(self.WIDTH-2)] for i in range(self.HEIGHT-2)] 
     self.expected = [1,1,1,1,0]
     self.numDots = 1
@@ -39,7 +39,6 @@ class NeuralAgent(Agent):
     col = position[0]-1
     row = abs(position[1]-(self.HEIGHT-2))
     self.visited[row][col] += 1
-    #print self.visited
 
     surroundingSpaces = [-1 for i in range(4)]
     m = gameState.data.matrix()
@@ -55,16 +54,11 @@ class NeuralAgent(Agent):
     if(col != self.WIDTH-3): #row, col + 1, Directions.EAST
       if(m[row + 1][col + 2] != "%"):
         surroundingSpaces[2] = self.visited[row][col + 1]
-    #input()
 
     # Collect legal moves and successor states
     legalMoves = gameState.getLegalActions()
-    
     parsedState = gameState.data.parseState()
     self.numDots = parsedState.count(0.1)
-    # print(self.numDots)
-    # for i in surroundingSpaces:
-    #   parsedState.append(i)
 
     ff = pacmanNet.feedforward(self.net, parsedState)
     self.expected = [ff[1][i] for i in range(5)]
@@ -98,13 +92,9 @@ class NeuralAgent(Agent):
             self.expected[j] = -1
     self.expected[Directions.STOP] = -1
 
-    ff[1][5] = (self.numDots-1)/float(self.initialDots)
-    ff[1][4] = -1
     if(self.training):
       pacmanNet.backprop(self.net, parsedState, self.expected + [(self.numDots-1)/float(self.initialDots)], 1)
 
-    #return legalMoves[chosenIndex]
-    #print bestMove[1]
     return bestMove[1]
 
 
@@ -208,7 +198,6 @@ class MultiAgentSearchAgent(Agent):
     """
     self.evaluationFunction = betterEvaluationFunction
     
-
 class MinimaxAgent(MultiAgentSearchAgent):
   """
     Your minimax agent (question 2)

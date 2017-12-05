@@ -281,6 +281,9 @@ class GameStateData:
       self.layout = prevState.layout
       self._eaten = prevState._eaten
       self.score = prevState.score
+      self.scoreMax = prevState.scoreMax
+    else:
+      self.scoreMax = 0
     self._foodEaten = None
     self._capsuleEaten = None
     self._agentMoved = None
@@ -288,8 +291,8 @@ class GameStateData:
     self._win = False
     self.scoreChange = 0
     #CHANGE!
-    self.stateDict = {'%':0, '.':0.1, "o":0.1, ' ':0.2, '<':0.3, '>':0.4, '^':0.5, 'v':0.6, 'M':-0.1, 'W':-0.2, '3':-0.3, 'E':-0.4}
-    
+    self.stateDict = {'%':0, '.':0.5, "o":0.5, ' ':0.1, '<':1, '>':1, '^':1, 'v':1, 'M':-0.1, 'W':-0.2, '3':-0.3, 'E':-0.4}
+  
   def deepCopy( self ):
     state = GameStateData( self )
     state.food = self.food.deepCopy()
@@ -373,6 +376,9 @@ class GameStateData:
         m[abs(len(list(map[0]))-j-1)].append(i[j])
 
     return m
+
+  def setScoreMax(self, num):
+    self.scoreMax = num
 
   def _foodWallStr( self, hasFood, hasWall ):
     if hasFood:
@@ -501,12 +507,6 @@ class Game:
       if agentIndex == numAgents + 1: self.numMoves += 1
       # Next agent
       agentIndex = ( agentIndex + 1 ) % numAgents
-
-    #CHANGE!
-    import cPickle
-    f = file("pickle1", 'wb')
-    cPickle.dump(self.agents[0], f)
-    f.close()
     
     # inform a learning agent of the game result
     for agent in self.agents:
