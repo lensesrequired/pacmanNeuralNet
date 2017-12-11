@@ -588,7 +588,7 @@ def runGames( layouts, pacman, ghosts, display, numGames, record ):
 
       #CHANGE!
       import cPickle
-      f = file("dots100nodes1layouts", 'wb')
+      f = file("dots0or1-100nodes1layouts", 'wb')
       cPickle.dump(game.agents[0], f)
       f.close()
 

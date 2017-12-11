@@ -37,28 +37,28 @@ class NeuralAgent(Agent):
     col = position[0]-1
     row = abs(position[1]-(self.HEIGHT-2))
 
-    surroundingSpaces = [-1 for i in range(4)]
-    m = gameState.data.matrix() 
-    if(row != 0): #row - 1, col, Directions.NORTH
-      if(m[row][col + 1] == "." or m[row][col + 1] == "o"):
-        surroundingSpaces[0] = 1
-      else:
-        surroundingSpaces[0] = 0
-    if(row != self.HEIGHT-3): #row + 1, col, Directions.SOUTH
-      if(m[row + 2][col + 1] == "." or m[row + 2][col + 1] == "o"):
-        surroundingSpaces[1] = 1
-      else:
-        surroundingSpaces[1] = 0
-    if(col != 0): #row, col - 1, Directions.WEST
-      if(m[row + 1][col] == "." or m[row + 1][col] == "o"):
-        surroundingSpaces[3] = 1
-      else:
-        surroundingSpaces[3] = 0
-    if(col != self.WIDTH-3): #row, col + 1, Directions.EAST
-      if(m[row + 1][col + 2] == "." or m[row + 1][col + 2] == "o"):
-        surroundingSpaces[2] = 1
-      else:
-        surroundingSpaces[2] = 0
+    # surroundingSpaces = [-1 for i in range(4)]
+    # m = gameState.data.matrix() 
+    # if(row != 0): #row - 1, col, Directions.NORTH
+    #   if(m[row][col + 1] == "." or m[row][col + 1] == "o"):
+    #     surroundingSpaces[0] = 1
+    #   else:
+    #     surroundingSpaces[0] = 0
+    # if(row != self.HEIGHT-3): #row + 1, col, Directions.SOUTH
+    #   if(m[row + 2][col + 1] == "." or m[row + 2][col + 1] == "o"):
+    #     surroundingSpaces[1] = 1
+    #   else:
+    #     surroundingSpaces[1] = 0
+    # if(col != 0): #row, col - 1, Directions.WEST
+    #   if(m[row + 1][col] == "." or m[row + 1][col] == "o"):
+    #     surroundingSpaces[3] = 1
+    #   else:
+    #     surroundingSpaces[3] = 0
+    # if(col != self.WIDTH-3): #row, col + 1, Directions.EAST
+    #   if(m[row + 1][col + 2] == "." or m[row + 1][col + 2] == "o"):
+    #     surroundingSpaces[2] = 1
+    #   else:
+    #     surroundingSpaces[2] = 0
 
     # Collect legal moves and successor states
     legalMoves = gameState.getLegalActions()
@@ -73,17 +73,33 @@ class NeuralAgent(Agent):
     best = bestMove[1]
 
     #Get expected values
-    for i, v in enumerate(surroundingSpaces):
-      if v == 1:
-        expected[i] = 1
-      elif v == 0:
-        expected[i] *= 0.1
+    m = gameState.data.matrix() 
+    if(row != 0): #row - 1, col, Directions.NORTH
+      if(m[row][col + 1] == "." or m[row][col + 1] == "o"):
+        expected[0] = 1
+      elif(m[row][col + 1] != "%"):
+        expected[0] = 0
+    if(row != self.HEIGHT-3): #row + 1, col, Directions.SOUTH
+      if(m[row + 2][col + 1] == "." or m[row + 2][col + 1] == "o"):
+        expected[1] = 1
+      elif(m[row + 2][col + 1] != "%"):
+        expected[1] = 0
+    if(col != 0): #row, col - 1, Directions.WEST
+      if(m[row + 1][col] == "." or m[row + 1][col] == "o"):
+        expected[3] = 1
+      elif(m[row + 1][col] != "%"):
+        expected[3] = 0
+    if(col != self.WIDTH-3): #row, col + 1, Directions.EAST
+      if(m[row + 1][col + 2] == "." or m[row + 1][col + 2] == "o"):
+        expected[2] = 1
+      elif(m[row + 1][col + 2] != "%"):
+        expected[2] = 0
     expected[Directions.STOP] = -1
 
     if(self.training):
       pacmanNet.backprop(self.net, parsedState, expected + [(numDots-1)/float(self.initialDots)], 1)
 
-      if 1 not in surroundingSpaces:
+      if 1 not in expected:
         self.emptyMoves += 1
         if self.emptyMoves > 10:
           best = viableMoves[random.randint(0, len(viableMoves)-1)][1]
