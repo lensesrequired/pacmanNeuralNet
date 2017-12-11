@@ -563,7 +563,7 @@ def runGames( layouts, pacman, ghosts, display, numGames, record ):
   consecWins = 0
 
   # import cPickle
-  # f = file("pickle100nodes2layouts", 'rb')
+  # f = file("dots100nodes1layouts", 'rb')
   # pacman = cPickle.load(f)
   # f.close()
 
@@ -588,7 +588,7 @@ def runGames( layouts, pacman, ghosts, display, numGames, record ):
 
       #CHANGE!
       import cPickle
-      f = file("pickle100nodes10layouts", 'wb')
+      f = file("dots100nodes1layouts", 'wb')
       cPickle.dump(game.agents[0], f)
       f.close()
 

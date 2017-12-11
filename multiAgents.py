@@ -15,15 +15,13 @@ class NeuralAgent(Agent):
     self.index = index
     self.nSize = (self.WIDTH*self.HEIGHT)
     self.net = pacmanNet.createNetwork(self.nSize, 6, 100)
-    self.visited = [[0 for j in range(self.WIDTH-2)] for i in range(self.HEIGHT-2)] 
-    self.expected = [1,1,1,1,0]
-    self.numDots = 1
     self.moves = 0
+    self.emptyMoves = 0
 
   def reset(self, num):
     self.initialDots = num
     self.moves = 0
-    self.visited = [[0 for j in range(self.WIDTH-2)] for i in range(self.HEIGHT-2)] 
+    self.emptyMoves = 0
 
   def getFF(self, gameState):
     parsedState = gameState.data.parseState()
@@ -38,64 +36,61 @@ class NeuralAgent(Agent):
     position = gameState.data.agentStates[0].getPosition()
     col = position[0]-1
     row = abs(position[1]-(self.HEIGHT-2))
-    self.visited[row][col] += 1
 
     surroundingSpaces = [-1 for i in range(4)]
-    m = gameState.data.matrix()
+    m = gameState.data.matrix() 
     if(row != 0): #row - 1, col, Directions.NORTH
-      if(m[row][col + 1] != "%"):
-        surroundingSpaces[0] = (self.visited[row - 1][col])
+      if(m[row][col + 1] == "." or m[row][col + 1] == "o"):
+        surroundingSpaces[0] = 1
+      else:
+        surroundingSpaces[0] = 0
     if(row != self.HEIGHT-3): #row + 1, col, Directions.SOUTH
-      if(m[row + 2][col + 1] != "%"):
-        surroundingSpaces[1] = self.visited[row + 1][col]
+      if(m[row + 2][col + 1] == "." or m[row + 2][col + 1] == "o"):
+        surroundingSpaces[1] = 1
+      else:
+        surroundingSpaces[1] = 0
     if(col != 0): #row, col - 1, Directions.WEST
-      if(m[row + 1][col] != "%"):
-        surroundingSpaces[3] = self.visited[row][col - 1]
+      if(m[row + 1][col] == "." or m[row + 1][col] == "o"):
+        surroundingSpaces[3] = 1
+      else:
+        surroundingSpaces[3] = 0
     if(col != self.WIDTH-3): #row, col + 1, Directions.EAST
-      if(m[row + 1][col + 2] != "%"):
-        surroundingSpaces[2] = self.visited[row][col + 1]
+      if(m[row + 1][col + 2] == "." or m[row + 1][col + 2] == "o"):
+        surroundingSpaces[2] = 1
+      else:
+        surroundingSpaces[2] = 0
 
     # Collect legal moves and successor states
     legalMoves = gameState.getLegalActions()
     parsedState = gameState.data.parseState()
-    self.numDots = parsedState.count(0.1)
+    numDots = parsedState.count(0.1)
 
     ff = pacmanNet.feedforward(self.net, parsedState)
-    self.expected = [ff[1][i] for i in range(5)]
+    #print(ff[1])
+    expected = [ff[1][i] for i in range(5)]
     viableMoves = [(ff[1][i], i) for i in legalMoves]
     bestMove = max(viableMoves)
-
-    ranking = list(set(surroundingSpaces))
-    ranking.sort()
-    try:
-      ranking.remove(-1)
-    except ValueError:
-      pass
+    best = bestMove[1]
 
     #Get expected values
-    for r,rank in enumerate(ranking):
-      if r == 0:
-        for j in range(len(self.expected)-1):
-          if surroundingSpaces[j] == rank:
-            self.expected[j] = 1
-      elif r == 1:
-        for j in range(len(self.expected)-1):
-          if surroundingSpaces[j] == rank:
-            self.expected[j] = ff[1][j] * 0.5
-      elif r == 2:
-        for j in range(len(self.expected)-1):
-          if surroundingSpaces[j] == rank:
-            self.expected[j] = ff[1][j] * -0.5
-      else:
-        for j in range(len(self.expected)-1):
-          if surroundingSpaces[j] == rank:
-            self.expected[j] = -1
-    self.expected[Directions.STOP] = -1
+    for i, v in enumerate(surroundingSpaces):
+      if v == 1:
+        expected[i] = 1
+      elif v == 0:
+        expected[i] *= 0.1
+    expected[Directions.STOP] = -1
 
     if(self.training):
-      pacmanNet.backprop(self.net, parsedState, self.expected + [(self.numDots-1)/float(self.initialDots)], 1)
+      pacmanNet.backprop(self.net, parsedState, expected + [(numDots-1)/float(self.initialDots)], 1)
 
-    return bestMove[1]
+      if 1 not in surroundingSpaces:
+        self.emptyMoves += 1
+        if self.emptyMoves > 10:
+          best = viableMoves[random.randint(0, len(viableMoves)-1)][1]
+      else:
+        self.emptyMoves = 0
+
+    return best
 
 
 
