@@ -97,7 +97,7 @@ class NeuralAgent(Agent):
     expected[Directions.STOP] = -1
 
     if(self.training):
-      pacmanNet.backprop(self.net, parsedState, expected + [(numDots-1)/float(self.initialDots)], 1)
+      #pacmanNet.backprop(self.net, parsedState, expected + [(numDots-1)/float(self.initialDots)], 1)
 
       if 1 not in expected:
         self.emptyMoves += 1
