@@ -14,12 +14,12 @@ class NeuralAgent(Agent):
   def __init__(self, index=0):
     self.index = index
     self.nSize = (self.WIDTH*self.HEIGHT)
-    self.net = pacmanNet.createNetwork(self.nSize, 6, 100)
+    self.net = pacmanNet.createNetwork(self.nSize, 5, 100)
     self.moves = 0
     self.emptyMoves = 0
 
   def reset(self, num):
-    self.initialDots = num
+    #self.initialDots = num
     self.moves = 0
     self.emptyMoves = 0
 
@@ -63,7 +63,7 @@ class NeuralAgent(Agent):
     # Collect legal moves and successor states
     legalMoves = gameState.getLegalActions()
     parsedState = gameState.data.parseState()
-    numDots = parsedState.count(0.1)
+    #numDots = parsedState.count(0.1)
 
     ff = pacmanNet.feedforward(self.net, parsedState)
     #print(ff[1])
@@ -97,7 +97,7 @@ class NeuralAgent(Agent):
     expected[Directions.STOP] = -1
 
     if(self.training):
-      #pacmanNet.backprop(self.net, parsedState, expected + [(numDots-1)/float(self.initialDots)], 1)
+      pacmanNet.backprop(self.net, parsedState, expected, 1)
 
       if 1 not in expected:
         self.emptyMoves += 1
