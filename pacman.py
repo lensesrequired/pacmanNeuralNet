@@ -562,10 +562,10 @@ def runGames( layouts, pacman, ghosts, display, numGames, record ):
   games = []
   consecWins = 0
 
-  # import cPickle
-  # f = file("dots100nodes1layouts", 'rb')
-  # pacman = cPickle.load(f)
-  # f.close()
+  import cPickle
+  f = file("dots0or1-100nodes1layouts", 'rb')
+  pacman = cPickle.load(f)
+  f.close()
 
   pacman.training = True
   #LEARNING
