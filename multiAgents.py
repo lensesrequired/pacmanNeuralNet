@@ -14,7 +14,7 @@ class NeuralAgent(Agent):
   def __init__(self, index=0):
     self.index = index
     self.nSize = (self.WIDTH*self.HEIGHT)
-    self.net = pacmanNet.createNetwork(self.nSize, 5, 100)
+    self.net = pacmanNet.createNetwork(self.nSize, 5, 70)
     self.moves = 0
     self.emptyMoves = 0
 
@@ -99,7 +99,7 @@ class NeuralAgent(Agent):
     if(self.training):
       pacmanNet.backprop(self.net, parsedState, expected, 1)
 
-      if 1 not in expected:# or gameState.data.score < gameState.data.scoreMax - 50:
+      if 1 not in expected or gameState.data.score < gameState.data.scoreMax - 50:
         self.emptyMoves += 1
         if self.emptyMoves > 10:
           best = viableMoves[random.randint(0, len(viableMoves)-1)][1]
