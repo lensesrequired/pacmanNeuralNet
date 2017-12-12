@@ -94,12 +94,15 @@ class NeuralAgent(Agent):
         expected[2] = 1
       elif(m[row + 1][col + 2] != "%"):
         expected[2] = 0
-    expected[Directions.STOP] = -1
+    expected[Directions.STOP] = -100
 
     if(self.training):
       pacmanNet.backprop(self.net, parsedState, expected, 1)
 
       if 1 not in expected or gameState.data.score < gameState.data.scoreMax - 50:
+        print(expected)
+        print(ff[1])
+        gameState.data.scoreMax = gameState.data.score
         self.emptyMoves += 1
         if self.emptyMoves > 10:
           best = viableMoves[random.randint(0, len(viableMoves)-1)][1]
