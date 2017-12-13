@@ -563,14 +563,14 @@ def runGames( layouts, pacman, ghosts, display, numGames, record ):
   consecWins = 0
 
   import cPickle
-  f = file("dots0or1-nopercent-100nodes1layouts-new", 'rb')
+  f = file("dots0or1-nopercent-100nodes10layouts-new", 'rb')
   pacman = cPickle.load(f)
   f.close()
 
   pacman.training = True
   #LEARNING
   i = 0
-  while(consecWins < 200):
+  while(consecWins < 100):
     for l in range(len(layouts)):
       layout = layouts[l]
       if(len(layouts) > 1):
@@ -588,7 +588,7 @@ def runGames( layouts, pacman, ghosts, display, numGames, record ):
 
       #CHANGE!
       import cPickle
-      f = file("dots0or1-nopercent-100nodes1layouts-new", 'wb')
+      f = file("dots0or1-nopercent-100nodes10layouts-new", 'wb')
       cPickle.dump(game.agents[0], f)
       f.close()
 
