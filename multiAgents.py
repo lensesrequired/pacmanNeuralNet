@@ -68,7 +68,7 @@ class NeuralAgent(Agent):
     ff = pacmanNet.feedforward(self.net, parsedState)
     #print(ff[1])
     expected = [ff[1][i] for i in range(5)]
-    viableMoves = [(ff[1][i], i) for i in legalMoves]
+    viableMoves = [(ff[1][i], i) for i in legalMoves if i != Directions.STOP]
     bestMove = max(viableMoves)
     best = bestMove[1]
 
@@ -94,10 +94,10 @@ class NeuralAgent(Agent):
         expected[2] = 1
       elif(m[row + 1][col + 2] != "%"):
         expected[2] = 0
-    expected[Directions.STOP] = -10000000
+    expected[Directions.STOP] = 0
 
     if(self.training):
-      #pacmanNet.backprop(self.net, parsedState, expected, 1)
+      pacmanNet.backprop(self.net, parsedState, expected, 1)
 
       if gameState.data.score < gameState.data.scoreMax - 50:
         #print(ff[1])
