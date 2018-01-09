@@ -291,7 +291,7 @@ class GameStateData:
     self._win = False
     self.scoreChange = 0
     #CHANGE!
-    self.stateDict = {'%':0, '.':0.5, "o":0.5, ' ':0.1, '<':1, '>':1, '^':1, 'v':1, 'M':-0.1, 'W':-0.2, '3':-0.3, 'E':-0.4}
+    self.stateDict = {'%':0, '.':1, "o":1, ' ':0.01, 'M':-1, 'W':-1, '3':-1, 'E':-1}
   
   def deepCopy( self ):
     state = GameStateData( self )
@@ -316,7 +316,7 @@ class GameStateData:
     if not self.capsules == other.capsules: return False
     if not self.score == other.score: return False
     return True
-                                                      
+                      
   def __hash__( self ):
     """
     Allows states to be keys of dictionaries.
@@ -377,6 +377,35 @@ class GameStateData:
 
     return m
 
+  def getInput(self, col, row, m):
+    surrounding = []
+    surrounding.append(self.stateDict[m[row - 1][col]])
+    surrounding.append(self.stateDict[m[row + 1][col]])
+    surrounding.append(self.stateDict[m[row][col + 1]])
+    surrounding.append(self.stateDict[m[row][col - 1]])
+
+    total = 0.0
+    N = 0
+    S = 0
+    W = 0
+    E = 0
+
+    for r, rowList in enumerate(m):
+      for c, symbol in enumerate(rowList):
+        if symbol == "." or symbol == "o":
+          total += 1.0
+          if r < row:
+            N += 1
+          elif r > row:
+            S += 1
+          if c < col:
+            W += 1
+          elif c > col:
+            E += 1
+          
+    return surrounding + [int(self.stateDict["."] in surrounding)] + [N/total, S/total, E/total, W/total]
+
+
   def setScoreMax(self, num):
     self.scoreMax = num
 
@@ -406,30 +435,6 @@ class GameStateData:
     if dir == Directions.WEST:
       return '3'
     return 'E'
-    
-  def parseState(self):
-    width, height = self.layout.width, self.layout.height
-    map = Grid(width, height)
-    for x in range(width):
-      for y in range(height):
-        food, walls = self.food, self.layout.walls
-        map[x][y] = self._foodWallStr(food[x][y], walls[x][y])
-    
-    for agentState in self.agentStates:
-      x,y = [int( i ) for i in nearestPoint( agentState.configuration.pos )]
-      agent_dir = agentState.configuration.direction
-      if agentState.isPacman:
-        map[x][y] = self._pacStr( agent_dir )
-      else:
-        map[x][y] = self._ghostStr( agent_dir )
-
-    for x, y in self.capsules:
-      map[x][y] = 'o'
-      
-    #[ord(letter) for letter in str(gameState) if letter != "\n"]
-    listMap = [self.stateDict[i] for i in str(map) if i != '\n']
-    
-    return listMap
     
   def initialize( self, layout, numGhostAgents ):
     """

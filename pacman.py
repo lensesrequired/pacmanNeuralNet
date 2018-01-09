@@ -563,13 +563,12 @@ def runGames( layouts, pacman, ghosts, display, numGames, record ):
   consecWins = 0
 
   import cPickle
-  f = file("dots0or1-nopercent-100nodes10layouts-new", 'rb')
+  f = file("surroundingorgeneral3layouts", 'rb')
   pacman = cPickle.load(f)
   f.close()
 
   pacman.training = True
   #LEARNING
-  i = 0
   while(consecWins < 100):
     for l in range(len(layouts)):
       layout = layouts[l]
@@ -577,7 +576,7 @@ def runGames( layouts, pacman, ghosts, display, numGames, record ):
         print "Layout num:", l
 
       game = rules.newGame( layout, pacman, ghosts, display )
-      print "Iteration:", i
+      print "Iteration:", game.agents[0].iterations
       game.run()
       print game.agents[0].moves
 
@@ -588,11 +587,11 @@ def runGames( layouts, pacman, ghosts, display, numGames, record ):
 
       #CHANGE!
       import cPickle
-      f = file("dots0or1-nopercent-100nodes10layouts-new", 'wb')
+      f = file("surroundingorgeneral3layouts", 'wb')
       cPickle.dump(game.agents[0], f)
       f.close()
 
-    i += 1
+    game.agents[0].iterations += 1
       
   #TESTING
   print("TESTING!")

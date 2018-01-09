@@ -10,13 +10,14 @@ class NeuralAgent(Agent):
   """
   WIDTH = 20
   HEIGHT = 7
+  nSize = 9
 
   def __init__(self, index=0):
     self.index = index
-    self.nSize = (self.WIDTH*self.HEIGHT)
-    self.net = pacmanNet.createNetwork(self.nSize, 5, 70)
+    self.net = pacmanNet.createNetwork(self.nSize, 5, 7)
     self.moves = 0
     self.emptyMoves = 0
+    self.iterations = 0
 
   def reset(self, num):
     #self.initialDots = num
@@ -34,38 +35,15 @@ class NeuralAgent(Agent):
     self.moves += 1
 
     position = gameState.data.agentStates[0].getPosition()
-    col = position[0]-1
-    row = abs(position[1]-(self.HEIGHT-2))
-
-    # surroundingSpaces = [-1 for i in range(4)]
-    # m = gameState.data.matrix() 
-    # if(row != 0): #row - 1, col, Directions.NORTH
-    #   if(m[row][col + 1] == "." or m[row][col + 1] == "o"):
-    #     surroundingSpaces[0] = 1
-    #   else:
-    #     surroundingSpaces[0] = 0
-    # if(row != self.HEIGHT-3): #row + 1, col, Directions.SOUTH
-    #   if(m[row + 2][col + 1] == "." or m[row + 2][col + 1] == "o"):
-    #     surroundingSpaces[1] = 1
-    #   else:
-    #     surroundingSpaces[1] = 0
-    # if(col != 0): #row, col - 1, Directions.WEST
-    #   if(m[row + 1][col] == "." or m[row + 1][col] == "o"):
-    #     surroundingSpaces[3] = 1
-    #   else:
-    #     surroundingSpaces[3] = 0
-    # if(col != self.WIDTH-3): #row, col + 1, Directions.EAST
-    #   if(m[row + 1][col + 2] == "." or m[row + 1][col + 2] == "o"):
-    #     surroundingSpaces[2] = 1
-    #   else:
-    #     surroundingSpaces[2] = 0
+    col = position[0]
+    row = abs(position[1]-(self.HEIGHT-1))
+    m = gameState.data.matrix() 
 
     # Collect legal moves and successor states
     legalMoves = gameState.getLegalActions()
-    parsedState = gameState.data.parseState()
-    #numDots = parsedState.count(0.1)
+    inputs = gameState.data.getInput(col, row, m)
 
-    ff = pacmanNet.feedforward(self.net, parsedState)
+    ff = pacmanNet.feedforward(self.net, inputs)
     #print(ff[1])
     expected = [ff[1][i] for i in range(5)]
     viableMoves = [(ff[1][i], i) for i in legalMoves if i != Directions.STOP]
@@ -73,38 +51,53 @@ class NeuralAgent(Agent):
     best = bestMove[1]
 
     #Get expected values
-    m = gameState.data.matrix() 
-    if(row != 0): #row - 1, col, Directions.NORTH
-      if(m[row][col + 1] == "." or m[row][col + 1] == "o"):
-        expected[0] = 1
-      elif(m[row][col + 1] != "%"):
-        expected[0] = 0
-    if(row != self.HEIGHT-3): #row + 1, col, Directions.SOUTH
-      if(m[row + 2][col + 1] == "." or m[row + 2][col + 1] == "o"):
-        expected[1] = 1
-      elif(m[row + 2][col + 1] != "%"):
-        expected[1] = 0
-    if(col != 0): #row, col - 1, Directions.WEST
-      if(m[row + 1][col] == "." or m[row + 1][col] == "o"):
-        expected[3] = 1
-      elif(m[row + 1][col] != "%"):
-        expected[3] = 0
-    if(col != self.WIDTH-3): #row, col + 1, Directions.EAST
-      if(m[row + 1][col + 2] == "." or m[row + 1][col + 2] == "o"):
-        expected[2] = 1
-      elif(m[row + 1][col + 2] != "%"):
-        expected[2] = 0
+    #row - 1, col, Directions.NORTH
+    if(m[row - 1][col] == "." or m[row - 1][col] == "o"):
+      expected[0] = 1
+    elif(m[row - 1][col] != "%"):
+      expected[0] = 0
+    #row + 1, col, Directions.SOUTH
+    if(m[row + 1][col] == "." or m[row + 1][col] == "o"):
+      expected[1] = 1
+    elif(m[row + 1][col] != "%"):
+      expected[1] = 0
+    #row, col - 1, Directions.WEST
+    if(m[row][col - 1] == "." or m[row][col - 1] == "o"):
+      expected[3] = 1
+    elif(m[row][col - 1] != "%"):
+      expected[3] = 0
+    #row, col + 1, Directions.EAST
+    if(m[row][col + 1] == "." or m[row][col + 1] == "o"):
+      expected[2] = 1
+    elif(m[row][col + 1] != "%"):
+      expected[2] = 0
     expected[Directions.STOP] = 0
 
     if(self.training):
-      pacmanNet.backprop(self.net, parsedState, expected, 1)
+      if(inputs[4]):
+        expected = []
+        for i in inputs[:4]:
+          if i == 1:
+            expected.append(1)
+          else:
+            expected.append(0)
+        pacmanNet.backprop(self.net, inputs, expected + [0], .1)
+      else:
+        expected = [i for i in inputs[5:]]
+        pacmanNet.backprop(self.net, inputs, expected+[0], .1)
+      # print "Given:", ff[1]
+      # print "Expected", expected
+      # input()
 
       if gameState.data.score < gameState.data.scoreMax - 50:
         #print(ff[1])
         gameState.data.scoreMax = gameState.data.score
         self.emptyMoves += 1
-        if self.emptyMoves > 10:
+        if self.emptyMoves == 10 or self.emptyMoves > 20: 
           best = viableMoves[random.randint(0, len(viableMoves)-1)][1]
+          print "Given:", ff[1]
+          print "Expected", expected
+          raw_input()
       else:
         self.emptyMoves = 0
 
